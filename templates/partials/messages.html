@@ -1,0 +1,11 @@
+{# Mensajes flash: se cierran solos o con el botón (ver main.js) #}
+{% if messages %}
+<div class="toast-stack" aria-live="polite">
+    {% for message in messages %}
+        <div class="toast toast--{{ message.tags|default:'info' }}" role="status">
+            <span class="toast__text">{{ message }}</span>
+            <button type="button" class="toast__close" aria-label="Cerrar mensaje" data-dismiss-toast>&times;</button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

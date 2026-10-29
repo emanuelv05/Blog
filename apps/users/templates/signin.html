@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar sesión{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{# Página de acceso: sin navbar ni sidebar #}
+{% block navbar %}{% endblock %}
+{% block layout %}
+<main class="auth">
+    {# Columna izquierda: marca y eslogan #}
+    <section class="auth__intro">
+        <h1 class="auth__brand">blog</h1>
+        <p class="auth__tagline">Comparte tus ideas y conecta con otras personas.</p>
+    </section>
+
+    {# Columna derecha: formulario de acceso #}
+    <section class="auth__card card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Usuario" autocomplete="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Contraseña" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn--primary btn--block btn--lg">Iniciar sesión</button>
+        </form>
+
+        <hr class="divider">
+        <a href="{% url 'user:signup' %}" class="btn btn--success btn--block">Crear cuenta nueva</a>
+    </section>
+</main>
+{% endblock %}

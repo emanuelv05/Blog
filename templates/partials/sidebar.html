@@ -1,0 +1,26 @@
+{# Menú lateral izquierdo (atajos), estilo Facebook #}
+<nav class="side-menu" aria-label="Atajos">
+    {% if user.is_authenticated %}
+        <a href="{% url 'user:profile' user.pk %}" class="side-menu__item">
+            <span class="avatar avatar--sm">
+                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="">{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+            </span>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+        </a>
+    {% endif %}
+
+    <a href="{% url 'core:home' %}" class="side-menu__item">
+        <span class="side-menu__icon">🏠</span><span>Inicio</span>
+    </a>
+    <a href="{% url 'post:list' %}" class="side-menu__item">
+        <span class="side-menu__icon">📰</span><span>Publicaciones</span>
+    </a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'post:create' %}" class="side-menu__item">
+            <span class="side-menu__icon">✍️</span><span>Nueva publicación</span>
+        </a>
+        <a href="{% url 'user:update_profile' %}" class="side-menu__item">
+            <span class="side-menu__icon">⚙️</span><span>Editar perfil</span>
+        </a>
+    {% endif %}
+</nav>

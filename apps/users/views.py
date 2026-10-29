@@ -17,11 +17,9 @@ class SignupView(CreateView):
     template_name = 'signup.html'
 
     def form_valid(self, form):
-        user = form.save(commit=False)
-        user.set_password(form.cleaned_data['password'])
-        user.save()
+        self.object = form.save()
         messages.success(self.request, "Usuario registrado exitosamente.")
-        return redirect(self.success_url)
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('user:profile', kwargs={'pk': self.object.pk})
@@ -54,6 +52,16 @@ class SignoutView(View):
 class ProfileView(DetailView):
     model = Profile
     template_name = 'user/profile.html'
+
+    # Indica en la plantilla si el usuario autenticado ya sigue a este perfil
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['is_following'] = (
+            user.is_authenticated
+            and Follow.objects.filter(follower=user, following=self.object.user).exists()
+        )
+        return context
 
 # Actualizar perfil
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):

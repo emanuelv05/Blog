@@ -1,0 +1,39 @@
+{# Barra superior fija estilo Facebook: logo, accesos centrales y menú de usuario #}
+<header class="navbar">
+    <div class="navbar__left">
+        <a href="{% url 'core:home' %}" class="navbar__logo" aria-label="Nexo, inicio"><span class="navbar__logo-mark">N</span><span class="navbar__logo-text">exo</span></a>
+    </div>
+
+    <nav class="navbar__center" aria-label="Navegación principal">
+        <a href="{% url 'core:home' %}" class="navbar__link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}" title="Inicio">Inicio</a>
+        <a href="{% url 'post:list' %}" class="navbar__link {% if request.resolver_match.app_name == 'post' %}is-active{% endif %}" title="Publicaciones">Publicaciones</a>
+    </nav>
+
+    <div class="navbar__right">
+        {% if user.is_authenticated %}
+            <a href="{% url 'post:create' %}" class="btn btn--primary btn--sm">+ Crear</a>
+
+            {# Menú desplegable del usuario #}
+            <div class="dropdown" data-dropdown>
+                <button type="button" class="avatar avatar--sm dropdown__toggle" data-dropdown-toggle aria-label="Menú de usuario">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="">
+                    {% else %}
+                        {{ user.username|slice:":1"|upper }}
+                    {% endif %}
+                </button>
+                <div class="dropdown__menu" hidden>
+                    <a href="{% url 'user:profile' user.pk %}" class="dropdown__item">Mi perfil</a>
+                    <a href="{% url 'user:update_profile' %}" class="dropdown__item">Editar perfil</a>
+                    <form method="post" action="{% url 'user:signout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown__item dropdown__item--button">Cerrar sesión</button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <a href="{% url 'user:signin' %}" class="btn btn--secondary btn--sm">Iniciar sesión</a>
+            <a href="{% url 'user:signup' %}" class="btn btn--primary btn--sm">Registrarse</a>
+        {% endif %}
+    </div>
+</header>

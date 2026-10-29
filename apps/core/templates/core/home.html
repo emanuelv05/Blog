@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+
+{# ----- Caja "¿Qué estás pensando?" (solo usuarios autenticados) ----- #}
+{% if user.is_authenticated %}
+<section class="card composer">
+    <a href="{% url 'user:profile' user.pk %}" class="avatar avatar--sm">
+        {% if user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="">
+        {% else %}
+            {{ user.username|slice:":1"|upper }}
+        {% endif %}
+    </a>
+    <a href="{% url 'post:create' %}" class="composer__input">
+        ¿Qué estás pensando, {{ user.first_name|default:user.username }}?
+    </a>
+</section>
+{% endif %}
+
+{# ----- Feed de publicaciones ----- #}
+<section class="feed">
+    {% for post in posts %}
+    <article class="card post" id="post-{{ post.pk }}">
+
+        {# Cabecera: autor, fecha y categoría #}
+        <header class="post__header">
+            <a href="{% url 'user:profile' post.user.pk %}" class="avatar avatar--sm">
+                {% if post.user.profile.avatar %}
+                    <img src="{{ post.user.profile.avatar.url }}" alt="">
+                {% else %}
+                    {{ post.user.username|slice:":1"|upper }}
+                {% endif %}
+            </a>
+            <div class="post__author">
+                <a href="{% url 'user:profile' post.user.pk %}" class="post__author-name">
+                    {{ post.user.get_full_name|default:post.user.username }}
+                </a>
+                <span class="post__meta">
+                    {{ post.created_at|date:"d M Y" }} · {{ post.category.title }}
+                </span>
+            </div>
+        </header>
+
+        {# Cuerpo: título, extracto, imagen y etiquetas #}
+        <div class="post__body">
+            <h2 class="post__title">
+                <a href="{% url 'post:detail' post.pk %}">{{ post.title }}</a>
+            </h2>
+            <p class="post__excerpt">{{ post.content|truncatewords:40 }}</p>
+
+            {% if post.image %}
+                <a href="{% url 'post:detail' post.pk %}">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post__image" loading="lazy">
+                </a>
+            {% endif %}
+
+            {% if post.tag.all %}
+            <ul class="post__tags">
+                {% for tag in post.tag.all %}
+                    <li class="tag">#{{ tag.title }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        {# Contadores #}
+        <div class="post__stats">
+            <span><span data-like-count>{{ post.likes.count }}</span> me gusta</span>
+            <a href="{% url 'post:detail' post.pk %}">{{ post.comments.count }} comentarios</a>
+        </div>
+
+        {# Acciones: me gusta, comentar #}
+        <footer class="post__actions">
+            {% if user.is_authenticated %}
+                <button type="button" class="post__action" data-like-btn
+                        data-url="{% url 'like:post_like' post.pk %}">
+                    👍 Me gusta
+                </button>
+            {% else %}
+                <a href="{% url 'user:signin' %}" class="post__action">👍 Me gusta</a>
+            {% endif %}
+            <a href="{% url 'post:detail' post.pk %}" class="post__action">💬 Comentar</a>
+        </footer>
+    </article>
+
+    {% empty %}
+    <div class="card empty-state">
+        <p>Aún no hay publicaciones.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post:create' %}" class="btn btn--primary">Crear la primera</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+
+{# ----- Paginación (10 por página, viene de HomeView) ----- #}
+{% if is_paginated %}
+<nav class="pagination" aria-label="Paginación">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn--secondary btn--sm">← Anterior</a>
+    {% endif %}
+
+    <span class="pagination__info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn btn--secondary btn--sm">Siguiente →</a>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% endblock %}

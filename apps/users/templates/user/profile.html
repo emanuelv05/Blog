@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.user.username }}{% endblock %}
+
+{# Perfil a ancho completo: sin sidebar #}
+{% block layout %}
+<div class="layout layout--profile">
+    <main class="profile">
+
+        {# ----- Portada y cabecera del perfil ----- #}
+        <section class="card profile__header">
+            <div class="profile__cover"></div>
+
+            <div class="profile__info">
+                <div class="avatar avatar--xl profile__avatar">
+                    {% if object.avatar %}
+                        <img src="{{ object.avatar.url }}" alt="Avatar de {{ object.user.username }}">
+                    {% else %}
+                        {{ object.user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+
+                <div class="profile__details">
+                    <h1 class="profile__name">{{ object.user.get_full_name|default:object.user.username }}</h1>
+                    <p class="profile__username">@{{ object.user.username }}</p>
+
+                    {# Contadores: following = quienes lo siguen, follower = a quienes sigue #}
+                    <ul class="profile__stats">
+                        <li><strong>{{ object.user.post_set.count }}</strong> publicaciones</li>
+                        <li><strong data-followers-count>{{ object.user.following.count }}</strong> seguidores</li>
+                        <li><strong>{{ object.user.follower.count }}</strong> siguiendo</li>
+                    </ul>
+                </div>
+
+                {# Acción principal según quién mira el perfil #}
+                <div class="profile__actions">
+                    {% if user == object.user %}
+                        <a href="{% url 'user:update_profile' %}" class="btn btn--secondary">Editar perfil</a>
+                    {% elif user.is_authenticated %}
+                        {# main.js alterna seguir / siguiendo sin recargar la página #}
+                        <button type="button"
+                                class="btn {% if is_following %}btn--secondary{% else %}btn--primary{% endif %}"
+                                data-follow-btn
+                                data-url="{% url 'user:follow' object.user.pk %}"
+                                data-following="{% if is_following %}true{% else %}false{% endif %}">
+                            {% if is_following %}Siguiendo{% else %}Seguir{% endif %}
+                        </button>
+                    {% else %}
+                        <a href="{% url 'user:signin' %}" class="btn btn--primary">Inicia sesión para seguir</a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        {# ----- Cuerpo: presentación + publicaciones ----- #}
+        <div class="profile__body">
+
+            <aside class="card profile__about">
+                <h2 class="card__title">Presentación</h2>
+                <p>{{ object.bio|default:"Este usuario aún no tiene biografía." }}</p>
+            </aside>
+
+            <section class="profile__posts">
+                {% for post in object.user.post_set.all %}
+                    <article class="card profile-post">
+                        <h3 class="profile-post__title">
+                            <a href="{% url 'post:detail' post.pk %}">{{ post.title }}</a>
+                        </h3>
+                        <p class="profile-post__meta">{{ post.created_at|date:"d M Y" }} · {{ post.category.title }}</p>
+                        <p class="profile-post__excerpt">{{ post.content|truncatewords:30 }}</p>
+                    </article>
+                {% empty %}
+                    <div class="card empty-state">Aún no hay publicaciones.</div>
+                {% endfor %}
+            </section>
+
+        </div>
+    </main>
+</div>
+{% endblock %}

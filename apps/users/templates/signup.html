@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear cuenta{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{# Página de registro: sin navbar ni sidebar #}
+{% block navbar %}{% endblock %}
+{% block layout %}
+<main class="auth auth--center">
+    <section class="auth__card auth__card--wide card">
+        <h1 class="auth__title">Crear cuenta nueva</h1>
+        <p class="auth__subtitle">Es rápido y fácil.</p>
+        <hr class="divider">
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {# Errores generales del formulario (ej. usuario repetido) #}
+            {% if form.non_field_errors %}
+                <div class="alert alert--error">
+                    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+
+            {# Nombre y apellido en la misma fila #}
+            <div class="form-row">
+                <div class="form-group {% if form.first_name.errors %}has-error{% endif %}">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-group__label">Nombre</label>
+                    {{ form.first_name }}
+                    {% for error in form.first_name.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+                </div>
+                <div class="form-group {% if form.last_name.errors %}has-error{% endif %}">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-group__label">Apellido</label>
+                    {{ form.last_name }}
+                    {% for error in form.last_name.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group {% if form.username.errors %}has-error{% endif %}">
+                <label for="{{ form.username.id_for_label }}" class="form-group__label">Usuario</label>
+                {{ form.username }}
+                {% for error in form.username.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="form-group {% if form.email.errors %}has-error{% endif %}">
+                <label for="{{ form.email.id_for_label }}" class="form-group__label">Correo electrónico</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+            </div>
+
+            {# Contraseña y confirmación en la misma fila #}
+            <div class="form-row">
+                <div class="form-group {% if form.password1.errors %}has-error{% endif %}">
+                    <label for="{{ form.password1.id_for_label }}" class="form-group__label">Contraseña</label>
+                    {{ form.password1 }}
+                    {% for error in form.password1.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+                </div>
+                <div class="form-group {% if form.password2.errors %}has-error{% endif %}">
+                    <label for="{{ form.password2.id_for_label }}" class="form-group__label">Repetir contraseña</label>
+                    {{ form.password2 }}
+                    {% for error in form.password2.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn--success btn--block btn--lg">Registrarte</button>
+        </form>
+
+        <p class="auth__footer"><a href="{% url 'user:signin' %}">¿Ya tienes una cuenta?</a></p>
+    </section>
+</main>
+{% endblock %}

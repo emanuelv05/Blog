@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar perfil{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h1 class="card__title">Editar perfil</h1>
+
+    {# enctype multipart es obligatorio para subir el avatar #}
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {# Foto de perfil con vista previa (la actualiza main.js al elegir archivo) #}
+        <div class="avatar-upload">
+            <div class="avatar avatar--xl" data-avatar-preview>
+                {% if object.avatar %}
+                    <img src="{{ object.avatar.url }}" alt="Avatar actual">
+                {% else %}
+                    {{ object.user.username|slice:":1"|upper }}
+                {% endif %}
+            </div>
+
+            <div class="form-group {% if form.avatar.errors %}has-error{% endif %}">
+                <label for="{{ form.avatar.id_for_label }}" class="form-group__label">Foto de perfil</label>
+                <input type="file" name="avatar" id="{{ form.avatar.id_for_label }}" accept="image/*" data-avatar-input>
+                <small class="form-group__help">JPG o PNG.</small>
+                {% for error in form.avatar.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+            </div>
+        </div>
+
+        {# Biografía #}
+        <div class="form-group {% if form.bio.errors %}has-error{% endif %}">
+            <label for="{{ form.bio.id_for_label }}" class="form-group__label">Biografía</label>
+            {{ form.bio }}
+            {% for error in form.bio.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'user:profile' user.pk %}" class="btn btn--secondary">Cancelar</a>
+            <button type="submit" class="btn btn--primary">Guardar cambios</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

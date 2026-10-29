@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.title }}{% endblock %}
+
+{% block content %}
+
+{# ----- Publicación completa ----- #}
+<article class="card post post--detail">
+
+    <header class="post__header">
+        <a href="{% url 'user:profile' object.user.pk %}" class="avatar avatar--sm">
+            {% if object.user.profile.avatar %}
+                <img src="{{ object.user.profile.avatar.url }}" alt="">
+            {% else %}
+                {{ object.user.username|slice:":1"|upper }}
+            {% endif %}
+        </a>
+        <div class="post__author">
+            <a href="{% url 'user:profile' object.user.pk %}" class="post__author-name">
+                {{ object.user.get_full_name|default:object.user.username }}
+            </a>
+            <span class="post__meta">{{ object.created_at|date:"d M Y" }} · {{ object.category.title }}</span>
+        </div>
+
+        {# Solo el autor puede editar o eliminar #}
+        {% if user == object.user %}
+        <div class="post__owner-actions">
+            <a href="{% url 'post:update' object.pk %}" class="btn btn--secondary btn--sm">Editar</a>
+            <a href="{% url 'post:delete' object.pk %}" class="btn btn--danger btn--sm">Eliminar</a>
+        </div>
+        {% endif %}
+    </header>
+
+    <div class="post__body">
+        <h1 class="post__title">{{ object.title }}</h1>
+        <div class="post__content">{{ object.content|linebreaks }}</div>
+
+        {% if object.image %}
+            <img src="{{ object.image.url }}" alt="{{ object.title }}" class="post__image">
+        {% endif %}
+
+        {% if object.tag.all %}
+        <ul class="post__tags">
+            {% for tag in object.tag.all %}<li class="tag">#{{ tag.title }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    <div class="post__stats">
+        <span><span data-like-count>{{ object.likes.count }}</span> me gusta</span>
+        <span>{{ object.comments.count }} comentarios</span>
+    </div>
+
+    <footer class="post__actions">
+        {% if user.is_authenticated %}
+            <button type="button" class="post__action" data-like-btn
+                    data-url="{% url 'like:post_like' object.pk %}">👍 Me gusta</button>
+        {% else %}
+            <a href="{% url 'user:signin' %}" class="post__action">👍 Me gusta</a>
+        {% endif %}
+    </footer>
+</article>
+
+{# ----- Comentarios ----- #}
+<section class="card comments">
+    <h2 class="card__title">Comentarios</h2>
+
+    {# Formulario para comentar #}
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'comment:create' object.pk %}" class="comment-form">
+            {% csrf_token %}
+            <textarea name="content" rows="2" placeholder="Escribe un comentario..." required></textarea>
+            <button type="submit" class="btn btn--primary btn--sm">Comentar</button>
+        </form>
+    {% else %}
+        <p class="comments__login"><a href="{% url 'user:signin' %}">Inicia sesión</a> para comentar.</p>
+    {% endif %}
+
+    {# Solo comentarios principales; las respuestas se anidan debajo de cada uno #}
+    <div class="comments__list">
+        {% for comment in object.comments.all %}
+            {% if not comment.parent_id %}
+            <article class="comment" id="comment-{{ comment.pk }}">
+                <a href="{% url 'user:profile' comment.user.pk %}" class="avatar avatar--sm">
+                    {% if comment.user.profile.avatar %}
+                        <img src="{{ comment.user.profile.avatar.url }}" alt="">
+                    {% else %}
+                        {{ comment.user.username|slice:":1"|upper }}
+                    {% endif %}
+                </a>
+
+                <div class="comment__main">
+                    <div class="comment__bubble">
+                        <a href="{% url 'user:profile' comment.user.pk %}" class="comment__author">
+                            {{ comment.user.get_full_name|default:comment.user.username }}
+                        </a>
+                        <p class="comment__text">{{ comment.content }}</p>
+                    </div>
+
+                    <div class="comment__actions">
+                        {% if user.is_authenticated %}
+                            <button type="button" class="comment__action" data-like-btn
+                                    data-url="{% url 'like:comment_like' comment.pk %}">
+                                Me gusta (<span data-like-count>{{ comment.likes.count }}</span>)
+                            </button>
+                            <button type="button" class="comment__action" data-reply-toggle="reply-{{ comment.pk }}">Responder</button>
+                        {% endif %}
+                        <span class="comment__date">{{ comment.created_at|timesince }}</span>
+                        {% if user == comment.user %}
+                            <a href="{% url 'comment:update' comment.pk %}" class="comment__action">Editar</a>
+                            <a href="{% url 'comment:delete' comment.pk %}" class="comment__action">Eliminar</a>
+                        {% endif %}
+                    </div>
+
+                    {# Formulario de respuesta (oculto hasta pulsar "Responder") #}
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'comment:create' object.pk %}"
+                          class="comment-form comment-form--reply" id="reply-{{ comment.pk }}" hidden>
+                        {% csrf_token %}
+                        <input type="hidden" name="parent" value="{{ comment.pk }}">
+                        <textarea name="content" rows="1" placeholder="Escribe una respuesta..." required></textarea>
+                        <button type="submit" class="btn btn--primary btn--sm">Responder</button>
+                    </form>
+                    {% endif %}
+
+                    {# Respuestas (un solo nivel) #}
+                    {% for reply in comment.replies.all %}
+                    <article class="comment comment--reply" id="comment-{{ reply.pk }}">
+                        <a href="{% url 'user:profile' reply.user.pk %}" class="avatar avatar--sm">
+                            {% if reply.user.profile.avatar %}
+                                <img src="{{ reply.user.profile.avatar.url }}" alt="">
+                            {% else %}
+                                {{ reply.user.username|slice:":1"|upper }}
+                            {% endif %}
+                        </a>
+                        <div class="comment__main">
+                            <div class="comment__bubble">
+                                <a href="{% url 'user:profile' reply.user.pk %}" class="comment__author">
+                                    {{ reply.user.get_full_name|default:reply.user.username }}
+                                </a>
+                                <p class="comment__text">{{ reply.content }}</p>
+                            </div>
+                            <div class="comment__actions">
+                                {% if user.is_authenticated %}
+                                    <button type="button" class="comment__action" data-like-btn
+                                            data-url="{% url 'like:comment_like' reply.pk %}">
+                                        Me gusta (<span data-like-count>{{ reply.likes.count }}</span>)
+                                    </button>
+                                {% endif %}
+                                <span class="comment__date">{{ reply.created_at|timesince }}</span>
+                                {% if user == reply.user %}
+                                    <a href="{% url 'comment:update' reply.pk %}" class="comment__action">Editar</a>
+                                    <a href="{% url 'comment:delete' reply.pk %}" class="comment__action">Eliminar</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endif %}
+        {% empty %}
+            <p class="empty-state">Sé el primero en comentar.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

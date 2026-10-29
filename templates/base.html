@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Blog{% endblock %} | Blog</title>
+
+    {# Estilos globales (variables, layout, componentes reutilizables) #}
+    <link rel="stylesheet" href="{% static 'themes/style.css' %}">
+    {# Estilos específicos de cada página/app #}
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    {# Barra de navegación superior (se puede ocultar en páginas de acceso) #}
+    {% block navbar %}
+        {% include 'partials/navbar.html' %}
+    {% endblock %}
+
+    {# Mensajes flash de Django (éxito, error, etc.) #}
+    {% include 'partials/messages.html' %}
+
+    {# Layout por defecto: sidebar izquierdo + contenido central #}
+    {% block layout %}
+        <div class="layout">
+            <aside class="layout__sidebar">
+                {% include 'partials/sidebar.html' %}
+            </aside>
+            <main class="layout__content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    {% endblock %}
+
+    {# JS global y por página #}
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

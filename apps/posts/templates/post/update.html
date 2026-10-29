@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar publicación{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h1 class="card__title">Editar publicación</h1>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert--error">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-group {% if form.title.errors %}has-error{% endif %}">
+            <label for="{{ form.title.id_for_label }}" class="form-group__label">Título</label>
+            {{ form.title }}
+            {% for error in form.title.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="form-group {% if form.content.errors %}has-error{% endif %}">
+            <label for="{{ form.content.id_for_label }}" class="form-group__label">Contenido</label>
+            {{ form.content }}
+            {% for error in form.content.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group {% if form.category.errors %}has-error{% endif %}">
+                <label for="{{ form.category.id_for_label }}" class="form-group__label">Categoría</label>
+                {{ form.category }}
+                {% for error in form.category.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+            </div>
+            <div class="form-group {% if form.tag.errors %}has-error{% endif %}">
+                <label for="{{ form.tag.id_for_label }}" class="form-group__label">Etiquetas</label>
+                {{ form.tag }}
+                <small class="form-group__help">Mantén Ctrl (o Cmd) para elegir varias.</small>
+                {% for error in form.tag.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+            </div>
+        </div>
+
+        {# Imagen actual (si existe) y campo para reemplazarla #}
+        <div class="form-group {% if form.image.errors %}has-error{% endif %}">
+            <label for="{{ form.image.id_for_label }}" class="form-group__label">Imagen</label>
+            {% if object.image %}
+                <img src="{{ object.image.url }}" alt="Imagen actual" class="form-card__current-image">
+                <small class="form-group__help">Imagen actual. Sube otra solo si quieres reemplazarla.</small>
+            {% endif %}
+            <input type="file" name="image" id="{{ form.image.id_for_label }}" accept="image/*">
+            {% for error in form.image.errors %}<small class="form-group__error">{{ error }}</small>{% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'post:detail' object.pk %}" class="btn btn--secondary">Cancelar</a>
+            <button type="submit" class="btn btn--primary">Guardar cambios</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

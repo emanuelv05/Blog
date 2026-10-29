@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar publicación{% endblock %}
+
+{% block content %}
+<section class="card form-card confirm">
+    <h1 class="card__title">Eliminar publicación</h1>
+
+    <p>¿Seguro que quieres eliminar <strong>"{{ object.title }}"</strong>?</p>
+    <p class="confirm__warning">Se borrarán también sus comentarios y me gusta. Esta acción no se puede deshacer.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <a href="{% url 'post:detail' object.pk %}" class="btn btn--secondary">Cancelar</a>
+            <button type="submit" class="btn btn--danger">Sí, eliminar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

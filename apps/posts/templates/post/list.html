@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Publicaciones{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <h1 class="page-header__title">Publicaciones</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'post:create' %}" class="btn btn--primary">+ Nueva publicación</a>
+    {% endif %}
+</header>
+
+<section class="feed">
+    {% for post in posts %}
+    <article class="card post">
+
+        {# Cabecera: autor, fecha y categoría #}
+        <header class="post__header">
+            <a href="{% url 'user:profile' post.user.pk %}" class="avatar avatar--sm">
+                {% if post.user.profile.avatar %}
+                    <img src="{{ post.user.profile.avatar.url }}" alt="">
+                {% else %}
+                    {{ post.user.username|slice:":1"|upper }}
+                {% endif %}
+            </a>
+            <div class="post__author">
+                <a href="{% url 'user:profile' post.user.pk %}" class="post__author-name">
+                    {{ post.user.get_full_name|default:post.user.username }}
+                </a>
+                <span class="post__meta">{{ post.created_at|date:"d M Y" }} · {{ post.category.title }}</span>
+            </div>
+        </header>
+
+        {# Cuerpo #}
+        <div class="post__body">
+            <h2 class="post__title">
+                <a href="{% url 'post:detail' post.pk %}">{{ post.title }}</a>
+            </h2>
+            <p class="post__excerpt">{{ post.content|truncatewords:40 }}</p>
+
+            {% if post.image %}
+                <a href="{% url 'post:detail' post.pk %}">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post__image" loading="lazy">
+                </a>
+            {% endif %}
+
+            {% if post.tag.all %}
+            <ul class="post__tags">
+                {% for tag in post.tag.all %}<li class="tag">#{{ tag.title }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        {# Contadores y enlace al detalle #}
+        <footer class="post__stats">
+            <span>{{ post.likes.count }} me gusta</span>
+            <a href="{% url 'post:detail' post.pk %}">{{ post.comments.count }} comentarios · Leer más</a>
+        </footer>
+    </article>
+
+    {% empty %}
+    <div class="card empty-state">
+        <p>Aún no hay publicaciones.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post:create' %}" class="btn btn--primary">Crear la primera</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}
